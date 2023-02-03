@@ -15,6 +15,11 @@ namespace MersiveEpi
     {
         private readonly MersiveStatusMonitor _monitor;
         private MersiveStatsResponse _currentStats;
+
+        public readonly HttpClient Client = new HttpClient
+                                            {
+                                                KeepAlive = true
+                                            };
        
         private string _hostname;
         private string _password;
@@ -126,8 +131,10 @@ namespace MersiveEpi
                     url = string.Format("{0}?password={1}", url, _password);
 
                 request.Url.Parse(url);
-                using (var client = new HttpClient())
-                    client.Dispatch(request);
+                using (var response = Client.Dispatch(request))
+                {
+                    Debug.Console(2, this, "Received response:{0}", response.Code);
+                }
             }
             catch (HttpException ex)
             {
@@ -143,7 +150,6 @@ namespace MersiveEpi
         {
             if (string.IsNullOrEmpty(hostname) || _hostname.Equals(hostname))
                 return;
-
 
             Debug.Console(1, this, "Setting hostname {0}", hostname);
             _monitor.Hostname = hostname;
